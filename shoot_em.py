@@ -7,8 +7,8 @@ import pygame
 import random
 
 # Global Variables
-WindowWidth = 1200
-WindowHeight = 600
+WindowWidth = 1400
+WindowHeight = 700
 x_POS = WindowWidth / 2
 y_POS = WindowHeight / 2
 
@@ -25,7 +25,7 @@ SHIP_WIDTH = 40
 
 # Load images
 BG = pygame.transform.scale(pygame.image.load("game_assets/BG.jpg"), (WindowWidth, WindowHeight))
-ship = pygame.transform.scale(pygame.image.load("game_assets/Ship1_new.png"), (200, 40))
+ship = pygame.transform.scale(pygame.image.load("game_assets/Ship1_new.png"), (100, 30))
 asteroid = pygame.transform.scale(pygame.image.load("game_assets/medium/a10000.png"), (60, 60))
 asteroid1 = pygame.transform.scale(pygame.image.load("game_assets/medium/a10001.png"), (60, 60))
 asteroid2 = pygame.transform.scale(pygame.image.load("game_assets/medium/a10002.png"), (60, 60))
@@ -42,6 +42,22 @@ asteroid12 = pygame.transform.scale(pygame.image.load("game_assets/medium/a10012
 asteroid13 = pygame.transform.scale(pygame.image.load("game_assets/medium/a10013.png"), (60, 60))
 asteroid14 = pygame.transform.scale(pygame.image.load("game_assets/medium/a10014.png"), (60, 60))
 asteroid15 = pygame.transform.scale(pygame.image.load("game_assets/medium/a10015.png"), (60, 60))
+asteroid2_ = pygame.transform.scale(pygame.image.load("game_assets/medium/a30000.png"), (60, 60))
+asteroid2_1 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30001.png"), (60, 60))
+asteroid2_2 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30002.png"), (60, 60))
+asteroid2_3 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30003.png"), (60, 60))
+asteroid2_4 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30004.png"), (60, 60))
+asteroid2_5 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30005.png"), (60, 60))
+asteroid2_6 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30006.png"), (60, 60))
+asteroid2_7 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30007.png"), (60, 60))
+asteroid2_8 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30008.png"), (60, 60))
+asteroid2_9 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30009.png"), (60, 60))
+asteroid2_10 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30010.png"), (60, 60))
+asteroid2_11 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30011.png"), (60, 60))
+asteroid2_12 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30012.png"), (60, 60))
+asteroid2_13 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30013.png"), (60, 60))
+asteroid2_14 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30014.png"), (60, 60))
+asteroid2_15 = pygame.transform.scale(pygame.image.load("game_assets/medium/a30015.png"), (60, 60))
 # Lives is a constant
 lives = 3
 
@@ -121,6 +137,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.images.append(asteroid13)
         self.images.append(asteroid14)
         self.images.append(asteroid15)
+
         self.a_pos = pos
         self.scroll = 0
 
@@ -146,10 +163,54 @@ class Asteroid(pygame.sprite.Sprite):
         # finally we will update the image that will be displayed
         self.image = self.images[self.index]
 
-    def move(self):
-        self.scroll += -1
-        self.a_pos = (self.a_pos[0] + self.scroll, self.a_pos[1])
-        print(self.a_pos)
+
+class Asteroid2(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super(Asteroid2, self).__init__()
+        self.images = []
+        self.images.append(asteroid2_)
+        self.images.append(asteroid2_1)
+        self.images.append(asteroid2_2)
+        self.images.append(asteroid2_3)
+        self.images.append(asteroid2_4)
+        self.images.append(asteroid2_5)
+        self.images.append(asteroid2_6)
+        self.images.append(asteroid2_7)
+        self.images.append(asteroid2_8)
+        self.images.append(asteroid2_9)
+        self.images.append(asteroid2_10)
+        self.images.append(asteroid2_11)
+        self.images.append(asteroid2_12)
+        self.images.append(asteroid2_13)
+        self.images.append(asteroid2_14)
+        self.images.append(asteroid2_15)
+
+        self.a_pos = pos
+
+        # index value to get the image from the array
+        # initially it is 0
+        self.index = 0
+
+        # now the image that we will display will be the index from the image array
+        self.image = self.images[self.index]
+
+        # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
+        self.rect = pygame.Rect(self.a_pos[0], self.a_pos[1], 40, 40)
+
+    def animation(self):
+        # when the update method is called, we will increment the index
+        self.index += 1
+
+        # if the index is larger than the total images
+        if self.index >= len(self.images):
+            # we will make the index to 0 again
+            self.index = 0
+
+        # finally we will update the image that will be displayed
+        self.image = self.images[self.index]
+
+def rand_Coord():
+    return random.randrange(300)
 
 
 def main():
@@ -168,11 +229,25 @@ def main():
 
     # Initialise game objects
     s = Ship((0, (WindowHeight / 2)))
-    a = Asteroid((500, 500))
-    a_group = pygame.sprite.Group(a)
-    a1 = Asteroid((600, 600))
-    a1_group = pygame.sprite.Group(a1)
 
+    #a = Asteroid((500, 500))
+    #a_group = pygame.sprite.Group(a)
+    #a1 = Asteroid((600, 400))
+    #a1_group = pygame.sprite.Group(a1)
+    b = Asteroid2((550, 300))
+    b_group = pygame.sprite.Group(b)
+    b1 = Asteroid2((300, 200))
+    b1_group = pygame.sprite.Group(b1)
+
+    #rand_X = random.randrange(300)
+    #rand_Y = random.randrange(300)
+
+    # Generate a list of 29 Asteroid objects
+
+    asteroids = [Asteroid((rand_Coord(), rand_Coord())) for i in range(29)]
+    for i in asteroids:
+        asteroids_group = [pygame.sprite.Group(i)]
+    #print(asteroids_group.draw)
     # Start main game loop
     while loop:
 
@@ -183,17 +258,31 @@ def main():
         s.draw(shoot_em_surface)
 
         # Draw Asteroids
-        a_group.update()
-        a.animation()
-        a_group.draw(shoot_em_surface)
-        a1_group.update()
-        a1.animation()
-        a1_group.draw(shoot_em_surface)
+        #a.animation()
+        #a_group.draw(shoot_em_surface)
+        #a1.animation()
+        #a1_group.draw(shoot_em_surface)
+        b.animation()
+        b_group.draw(shoot_em_surface)
+        print(b_group)
+        b1.animation()
+        b1_group.draw(shoot_em_surface)
+        #map(lambda a: a.animation(), asteroids)
+        #map(lambda a_group: a_group.draw(shoot_em_surface), asteroids_group)
+        for i in asteroids:
+            i.animation()
+            for a in range(29):
+                asteroids_group[0].draw(shoot_em_surface)
+            print(asteroids_group)
+            #map(lambda a_group: a_group.draw(shoot_em_surface), asteroids_group)
+
+        #map(lambda a_group: a)
 
         # Move Asteroids
-        a.move()
-        a1.move()
-
+        #a.move()
+        #a1.move()
+        #b.move()
+        #b1.move()
         # Update the screen
         pygame.display.flip()
 
