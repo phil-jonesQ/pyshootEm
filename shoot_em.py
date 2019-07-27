@@ -7,8 +7,8 @@ import pygame
 import random
 
 # Global Variables
-WindowWidth = 900
-WindowHeight = 400
+WindowWidth = 1200
+WindowHeight = 600
 x_POS = WindowWidth / 2
 y_POS = WindowHeight / 2
 
@@ -22,13 +22,10 @@ GREY = (128, 128, 128)
 
 # Load images
 BG = pygame.transform.scale(pygame.image.load("game_assets/BG.jpg"), (WindowWidth, WindowHeight))
-#gallows_base = pygame.transform.scale(pygame.image.load("Assets/Gallows_base.png"), (200, 30))
-#gallows_post = pygame.transform.scale(pygame.image.load("Assets/Gallows_post.png"), (30, 300))
-#gallows_top = pygame.transform.scale(pygame.image.load("Assets/Gallows_top.png"), (200, 30))
-#gallows_skew = pygame.transform.scale(pygame.image.load("Assets/Gallows_skew.png"), (30, 30))
+ship = pygame.transform.scale(pygame.image.load("game_assets/Ship1_new.png"), (200, 40))
 
 # Lives is a constant
-lives = 11
+lives = 3
 
 
 # Version constant
@@ -38,21 +35,38 @@ version = "1.00"
 clock = pygame.time.Clock()
 
 
+# Ship Class
+class Ship(object):
+
+    def __init__(self, start_pos):
+        self.ship_pos = start_pos
+
+    def draw(self, surface):
+
+        self.ship_pos_x = self.ship_pos[0]
+        self.ship_pos_y = self.ship_pos[1]
+        surface.blit(ship, self.ship_pos)
+
+
+class Asteroid(object):
+    pass
+
+
 def main():
-    pygame.init()
     # Create the Window
+    pygame.init()
     shoot_em_surface = pygame.display.set_mode((WindowWidth, WindowHeight))
     pygame.display.set_caption("Shoot Em " + str(version))
 
-    # Create an empty list so we can track guessed letters
-    guessed_letters = []
+    # Initialise fonts we will use
+    font = pygame.font.SysFont('Arial', 50, False, False)
 
     # Game loop and control booleans / counters
     loop = True
     game_over = False
 
-    # Initialise fonts we will use
-    font = pygame.font.SysFont('Arial', 50, False, False)
+    # Initialise game objects
+    s = Ship((0, (WindowHeight / 2)))
 
     # Start main game loop
     while loop:
@@ -60,11 +74,16 @@ def main():
         # Draw background image
         shoot_em_surface.blit(BG, [0, 0])
 
+        # Draw our ship
+        s.draw(shoot_em_surface)
+
         # Update the screen
         pygame.display.flip()
 
-        # Keep frame rate at 60 - clearly not needed for this type of game
+
+        # Control frame rate
         clock.tick(60)
+
         # Handle user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -73,8 +92,12 @@ def main():
 
             # Don't react to letter keys if the game is over
             if event.type == pygame.KEYDOWN and not game_over:
-                if event.key == pygame.K_a and a:
-                    guessed_letters.append("A")
+                if event.key == pygame.K_UP:
+                    print("UP")
+                if event.key == pygame.K_DOWN:
+                    print("DOWN")
+                if event.key == pygame.K_SPACE:
+                    print ("FIRE")
 
 # Call main
 if __name__ == "__main__":
