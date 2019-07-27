@@ -20,6 +20,8 @@ GREEN = (0, 255, 0)
 LIGHT_GREEN = (101, 152, 101)
 GREY = (128, 128, 128)
 
+MAX_VELOCITY = 20
+SHIP_WIDTH = 40
 
 # Load images
 BG = pygame.transform.scale(pygame.image.load("game_assets/BG.jpg"), (WindowWidth, WindowHeight))
@@ -44,22 +46,48 @@ class Ship(object):
         self.ship_pos_x = self.ship_pos[0]
         self.ship_pos_y = self.ship_pos[1]
         self.mover = 0
-        self.velocity = 1
+        self.velocity = 0
+        self.direction = 0
 
     def draw(self, surface):
         the_ship_pos = self.ship_pos
         #print(the_ship_pos)
         surface.blit(ship, the_ship_pos)
 
+
     def move(self, ship_dir):
-        ship_velocity = self.velocity
-        print(ship_velocity,self.mover)
+        print(self.velocity, self.ship_pos, ship_dir, self.mover)
         if ship_dir == 1:
-            self.mover += ship_velocity
-            ship_velocity += 10
+            self.velocity += 0.1
+            if self.velocity > 2:
+                self.velocity += 0.4
+            if self.velocity > 5:
+                self.velocity += 0.8
+            self.mover += self.velocity
+            self.ship_pos = (self.ship_pos_x, self.ship_pos_y + self.mover)
+            # Ship hits edge
+            if self.ship_pos[1] > WindowHeight - SHIP_WIDTH:
+                self.velocity = 0
+                self.ship_pos = (0, WindowHeight - SHIP_WIDTH)
+                self.mover = WindowHeight / 2 - SHIP_WIDTH
         if ship_dir == -1:
-            self.mover -= ship_velocity
-        self.ship_pos = (self.ship_pos_x, self.ship_pos_y + self.mover)
+            self.velocity += 0.1
+            if self.velocity > 2:
+                self.velocity += 0.4
+            if self.velocity > 5:
+                self.velocity += 0.8
+            self.mover -= self.velocity
+            self.ship_pos = (self.ship_pos_x, self.ship_pos_y + self.mover)
+            # Ship hits edge
+            if self.ship_pos[1] < 0:
+                self.velocity = 0
+                self.ship_pos = (0, 0)
+                self.mover = -WindowHeight / 2
+
+
+    def reset_velocity(self):
+        self.velocity = 0
+
 
 
 class Asteroid(object):
@@ -92,6 +120,7 @@ def main():
         # Draw our ship
         s.draw(shoot_em_surface)
 
+
         # Update the screen
         pygame.display.flip()
 
@@ -104,6 +133,8 @@ def main():
             if event.type == pygame.QUIT:
                 loop = False
                 pygame.quit()
+            if event.type == pygame.KEYUP:
+                s.reset_velocity()
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
