@@ -149,7 +149,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
-        self.rect = pygame.Rect(self.a_pos[0], self.a_pos[1], 40, 40)
+        #self.rect = pygame.Rect(self.a_pos[0], self.a_pos[1], 40, 40)
 
     def animation(self):
         # when the update method is called, we will increment the index
@@ -162,7 +162,15 @@ class Asteroid(pygame.sprite.Sprite):
 
         # finally we will update the image that will be displayed
         self.image = self.images[self.index]
-
+    def updateSprite(self):
+        self.scroll += -5
+        updated_x = self.a_pos[0] + self.scroll
+        # Constrain
+        if updated_x < 0:
+            self.scroll = 0
+            updated_x = WindowWidth
+        self.rect = pygame.Rect(updated_x, self.a_pos[1], 40, 40)
+        print (updated_x)
 
 class Asteroid2(pygame.sprite.Sprite):
     def __init__(self, pos):
@@ -196,6 +204,7 @@ class Asteroid2(pygame.sprite.Sprite):
 
         # creating a rect at position x,y (5,5) of size (150,198) which is the size of sprite
         self.rect = pygame.Rect(self.a_pos[0], self.a_pos[1], 40, 40)
+
 
     def animation(self):
         # when the update method is called, we will increment the index
@@ -251,6 +260,7 @@ def main():
         print(current_list_len)
         for i in asteroids:
             i.animation()
+            i.updateSprite()
         for i in range(current_list_len):
             #asteroids_group[i].clear(shoot_em_surface,BG)
             asteroids_group[i].draw(shoot_em_surface)
