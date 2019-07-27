@@ -210,7 +210,7 @@ class Asteroid2(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
 def rand_Coord():
-    return random.randrange(300)
+    return random.randrange(300, WindowWidth), random.randrange(0, WindowHeight)
 
 
 def main():
@@ -230,24 +230,11 @@ def main():
     # Initialise game objects
     s = Ship((0, (WindowHeight / 2)))
 
-    #a = Asteroid((500, 500))
-    #a_group = pygame.sprite.Group(a)
-    #a1 = Asteroid((600, 400))
-    #a1_group = pygame.sprite.Group(a1)
-    b = Asteroid2((550, 300))
-    b_group = pygame.sprite.Group(b)
-    b1 = Asteroid2((300, 200))
-    b1_group = pygame.sprite.Group(b1)
+    # Generate a list of 19 Asteroid objects
+    wave = 19
+    asteroids = [Asteroid((rand_Coord())) for i in range(wave)]
+    asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
 
-    #rand_X = random.randrange(300)
-    #rand_Y = random.randrange(300)
-
-    # Generate a list of 29 Asteroid objects
-
-    asteroids = [Asteroid((rand_Coord(), rand_Coord())) for i in range(29)]
-    for i in asteroids:
-        asteroids_group = [pygame.sprite.Group(i)]
-    #print(asteroids_group.draw)
     # Start main game loop
     while loop:
 
@@ -260,35 +247,19 @@ def main():
         # Draw Asteroids
         #a.animation()
         #a_group.draw(shoot_em_surface)
-        #a1.animation()
-        #a1_group.draw(shoot_em_surface)
-        b.animation()
-        b_group.draw(shoot_em_surface)
-        print(b_group)
-        b1.animation()
-        b1_group.draw(shoot_em_surface)
-        #map(lambda a: a.animation(), asteroids)
-        #map(lambda a_group: a_group.draw(shoot_em_surface), asteroids_group)
+        current_list_len = len(asteroids_group)
+        print(current_list_len)
         for i in asteroids:
             i.animation()
-            for a in range(29):
-                asteroids_group[0].draw(shoot_em_surface)
-            print(asteroids_group)
-            #map(lambda a_group: a_group.draw(shoot_em_surface), asteroids_group)
+        #for a in range(current_list_len):
+        asteroids_group[0].draw(shoot_em_surface)
 
-        #map(lambda a_group: a)
-
-        # Move Asteroids
-        #a.move()
-        #a1.move()
-        #b.move()
-        #b1.move()
         # Update the screen
         pygame.display.flip()
 
 
         # Control frame rate
-        clock.tick(16)
+        clock.tick(15)
 
         # Handle user input
         for event in pygame.event.get():
@@ -305,7 +276,8 @@ def main():
             s.move(1)
         if keys[pygame.K_SPACE]:
             print("FIRE")
-
+        if keys[pygame.K_x]:
+            asteroids_group.pop(0)
 # Call main
 if __name__ == "__main__":
     main()
