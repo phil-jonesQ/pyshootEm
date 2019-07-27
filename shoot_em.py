@@ -251,15 +251,17 @@ def main():
         print(current_list_len)
         for i in asteroids:
             i.animation()
-        #for a in range(current_list_len):
-        asteroids_group[0].draw(shoot_em_surface)
+        for i in range(current_list_len):
+            #asteroids_group[i].clear(shoot_em_surface,BG)
+            asteroids_group[i].draw(shoot_em_surface)
+
 
         # Update the screen
         pygame.display.flip()
 
 
         # Control frame rate
-        clock.tick(15)
+        clock.tick(20)
 
         # Handle user input
         for event in pygame.event.get():
@@ -278,6 +280,8 @@ def main():
             print("FIRE")
         if keys[pygame.K_x]:
             asteroids_group.pop(0)
+            asteroids.pop(0)
+
 # Call main
 if __name__ == "__main__":
     main()
