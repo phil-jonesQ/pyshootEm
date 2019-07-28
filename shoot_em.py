@@ -37,6 +37,10 @@ for file_name in os.listdir(path):
     image = pygame.transform.scale(pygame.image.load(path + os.sep + file_name), (80, 80))
     a_images.append(image)
 
+# Load Explosions
+e_images = []
+path = "game_assets/"
+
 # Lives is a constant
 lives = 3
 
@@ -63,9 +67,9 @@ class Ship(object):
     def draw(self, surface):
         the_ship_pos = self.ship_pos
         surface.blit(ship, the_ship_pos)
-        self.rect = pygame.Rect(the_ship_pos[0], the_ship_pos[1], 100, 30)
+        self.rect = pygame.Rect(the_ship_pos[0], the_ship_pos[1], 50, 10)
         #surface.blit(self.rect, the_ship_pos)
-        pygame.draw.rect(surface, [255, 0, 0], [the_ship_pos[0], the_ship_pos[1], 100, 30], 1)
+        #pygame.draw.rect(surface, [255, 0, 0], [the_ship_pos[0], the_ship_pos[1], 50, 30], 1)
 
     def move(self, ship_dir):
         #print(self.velocity, self.ship_pos, ship_dir, self.mover)
@@ -121,7 +125,8 @@ class Asteroid(pygame.sprite.Sprite):
             self.index = 0
         # finally we will update the image that will be displayed
         self.image = self.images[self.index]
-    def updateSprite(self, surface):
+
+    def update_sprite(self, surface):
         self.scroll += -5
         updated_x = self.a_pos[0] + self.scroll
         # Constrain
@@ -129,14 +134,22 @@ class Asteroid(pygame.sprite.Sprite):
             self.scroll = 0
             updated_x = WindowWidth
             #self.kill()
-        self.rect = pygame.Rect(updated_x + 20, self.a_pos[1] + 20, 40, 40)
-        pygame.draw.rect(surface, [255, 0, 0], [updated_x + 20, self.a_pos[1] + 20, 40, 40], 1)
+        self.rect = pygame.Rect(updated_x, self.a_pos[1], 40, 40)
+        #pygame.draw.rect(surface, [255, 0, 0], [updated_x + 20, self.a_pos[1] + 20, 40, 40], 1)
         #print (updated_x)
+
     def is_colliding(self, ship):
         s = ship
         if self.rect.colliderect(s.rect):
             self.kill()
 
+
+class Explosion(pygame.sprite.Sprite):
+
+    def __init__(self, pos):
+        super(Explosion, self).__init__()
+        self.images = e_images
+        self.a_pos = pos
 
 
 def rand_Coord():
@@ -162,7 +175,7 @@ def main():
     #s_group = pygame.sprite.Group(s)
 
     # Generate a list of 19 Asteroid objects
-    wave_list = [4 , 34, 45, 100]
+    wave_list = [4, 34, 45, 100]
     wave = wave_list[1]
     asteroids = [Asteroid((rand_Coord())) for i in range(wave)]
     #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
@@ -181,7 +194,7 @@ def main():
         # Animate and scroll the Asteroids
         for i in asteroids:
             i.animation()
-            i.updateSprite(shoot_em_surface)
+            i.update_sprite(shoot_em_surface)
             i.is_colliding(s)
 
         # Draw the asteroid sprite group
