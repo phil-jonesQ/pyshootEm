@@ -42,7 +42,7 @@ lives = 3
 
 
 # Version constant
-version = "1.00"
+version = "1.01"
 
 # Use the pygame clock so we can set the frame rate of the game
 clock = pygame.time.Clock()
@@ -153,7 +153,8 @@ def main():
     s = Ship((0, (WindowHeight / 2)))
 
     # Generate a list of 19 Asteroid objects
-    wave = 19
+    wave_list = [19 , 34, 45]
+    wave = wave_list[2]
     asteroids = [Asteroid((rand_Coord())) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
 
