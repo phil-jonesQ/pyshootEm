@@ -127,6 +127,7 @@ class Asteroid(pygame.sprite.Sprite):
         if updated_x < -30:
             self.scroll = 0
             updated_x = WindowWidth
+            self.kill()
         self.rect = pygame.Rect(updated_x, self.a_pos[1], 40, 40)
         #print (updated_x)
 
@@ -153,10 +154,11 @@ def main():
     s = Ship((0, (WindowHeight / 2)))
 
     # Generate a list of 19 Asteroid objects
-    wave_list = [19 , 34, 45]
-    wave = wave_list[2]
+    wave_list = [4 , 34, 45, 100]
+    wave = wave_list[3]
     asteroids = [Asteroid((rand_Coord())) for i in range(wave)]
-    asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
+    #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
+    asteroids_group = [pygame.sprite.Group(asteroids)]
 
     # Start main game loop
     while loop:
@@ -171,13 +173,13 @@ def main():
         #a.animation()
         #a_group.draw(shoot_em_surface)
         current_list_len = len(asteroids_group)
-        #print(current_list_len)
+        print(current_list_len)
         for i in asteroids:
             i.animation()
             i.updateSprite()
-        for i in range(current_list_len):
+        #for i in range(current_list_len):
             #asteroids_group[i].clear(shoot_em_surface,BG)
-            asteroids_group[i].draw(shoot_em_surface)
+        asteroids_group[0].draw(shoot_em_surface)
 
 
         # Update the screen
@@ -203,8 +205,8 @@ def main():
         if keys[pygame.K_SPACE]:
             print("FIRE")
         if keys[pygame.K_x]:
-            asteroids_group.pop(0)
             asteroids.pop(0)
+            #asteroids.pop(0)
 
 # Call main
 if __name__ == "__main__":
