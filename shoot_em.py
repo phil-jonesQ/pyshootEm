@@ -39,7 +39,10 @@ for file_name in os.listdir(path):
 
 # Load Explosions
 e_images = []
-path = "game_assets/"
+path = "game_assets/explosion"
+for file_name in os.listdir(path):
+    image = pygame.transform.scale(pygame.image.load(path + os.sep + file_name), (50, 50))
+    e_images.append(image)
 
 # Lives is a constant
 lives = 3
@@ -138,21 +141,39 @@ class Asteroid(pygame.sprite.Sprite):
         #pygame.draw.rect(surface, [255, 0, 0], [updated_x + 20, self.a_pos[1] + 20, 40, 40], 1)
         #print (updated_x)
 
-    def is_colliding(self, ship):
+    def is_colliding(self, ship, explode):
         s = ship
+        e = explode
         if self.rect.colliderect(s.rect):
+            e.update_sprite((10, 10))
             self.kill()
 
 
 class Explosion(pygame.sprite.Sprite):
 
-    def __init__(self, pos):
+    def __init__(self):
         super(Explosion, self).__init__()
         self.images = e_images
-        self.a_pos = pos
+        self.e_pos = (0, 0)
+        self.index = 0
+        # now the image that we will display will be the index from the image array
+        self.image = self.images[self.index]
+
+    def animation(self):
+        # when the update method is called, we will increment the index
+        self.index += 1
+        # if the index is larger than the total images
+        if self.index >= len(self.images):
+            # we will make the index to 0 again
+            self.index = 0
+        # finally we will update the image that will be displayed
+        self.image = self.images[self.index]
+
+    def update_sprite(self, pos):
+        self.rect = pygame.Rect(pos[0], pos[1], 50, 50)
 
 
-def rand_Coord():
+def rand_coord():
     return random.randrange(300, WindowWidth), random.randrange(0, WindowHeight)
 
 
@@ -172,12 +193,14 @@ def main():
 
     # Initialise game objects
     s = Ship((0, (WindowHeight / 2)))
-    #s_group = pygame.sprite.Group(s)
 
-    # Generate a list of 19 Asteroid objects
+    e = Explosion()
+    e_group = pygame.sprite.Group(e)
+
+    # Generate a list of "wave_list" Asteroid objects
     wave_list = [4, 34, 45, 100]
     wave = wave_list[1]
-    asteroids = [Asteroid((rand_Coord())) for i in range(wave)]
+    asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
 
@@ -195,7 +218,12 @@ def main():
         for i in asteroids:
             i.animation()
             i.update_sprite(shoot_em_surface)
-            i.is_colliding(s)
+            i.is_colliding(s, e)
+
+        # Ensure the explosion is animated
+        e.animation()
+        e.update_sprite((60, 60))
+        e_group.draw(shoot_em_surface)
 
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
@@ -224,8 +252,10 @@ def main():
         if keys[pygame.K_SPACE]:
             print("FIRE")
         if keys[pygame.K_x]:
-            asteroids.pop(0)
             #asteroids.pop(0)
+            #asteroids.pop(0)
+            e.update_sprite((10, 10))
+            e_group.draw(shoot_em_surface)
 
 # Call main
 if __name__ == "__main__":
