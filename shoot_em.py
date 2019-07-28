@@ -141,11 +141,14 @@ class Asteroid(pygame.sprite.Sprite):
         #pygame.draw.rect(surface, [255, 0, 0], [updated_x + 20, self.a_pos[1] + 20, 40, 40], 1)
         #print (updated_x)
 
-    def is_colliding(self, ship, explode):
+    def is_colliding(self, ship, explode, e_group, surface):
         s = ship
         e = explode
+        shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
-            e.update_sprite((10, 10))
+            e.update_sprite(s.ship_pos)
+            e.animation()
+            e_group.draw(shoot_em_surface)
             self.kill()
 
 
@@ -218,12 +221,13 @@ def main():
         for i in asteroids:
             i.animation()
             i.update_sprite(shoot_em_surface)
-            i.is_colliding(s, e)
+            i.is_colliding(s, e, e_group, shoot_em_surface)
 
         # Ensure the explosion is animated
-        e.animation()
-        e.update_sprite((60, 60))
-        e_group.draw(shoot_em_surface)
+        #e.animation()
+        #e.update_sprite((60, 60))
+        #e_group.draw(shoot_em_surface)
+        #e.remove(e_group)
 
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
@@ -254,8 +258,9 @@ def main():
         if keys[pygame.K_x]:
             #asteroids.pop(0)
             #asteroids.pop(0)
-            e.update_sprite((10, 10))
-            e_group.draw(shoot_em_surface)
+            #e.update_sprite((10, 10))
+            #e_group.draw(shoot_em_surface)
+            e.remove(e_group)
 
 # Call main
 if __name__ == "__main__":
