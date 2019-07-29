@@ -152,14 +152,14 @@ class Asteroid(pygame.sprite.Sprite):
         e = explode
         shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
-            print ("collided with ship and the damage is " + str(s.damage))
-            print ("*****")
+            print("collided with ship and the damage is " + str(s.damage))
+            print("*****")
             s.damage += 1
             e.update_sprite(s.ship_pos)
             e.animation()
             e_group.draw(shoot_em_surface)
             if s.is_ship_destroyed():
-                print ("BOOM! Life is lost!!")
+                print("BOOM! Life is lost!!")
 
 
 class Explosion(pygame.sprite.Sprite):
@@ -186,22 +186,34 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = pygame.Rect(pos[0], pos[1], 50, 50)
 
 
-class Laser(pygame.sprite.Sprite):
+class Laser(object):
     def __init__(self, pos):
-        super(Laser, self).__init__()
         self.images = laser
         self.laser_pos = pos
-        self.laser_pos_x = self.laser_pos[0]
-        self.ship_pos_y = self.laser_pos[1]
+        self.propogate = 0
+        self.propogate_stop = 100
 
-    def update_sprite(self):
-        self.rect = pygame.Rect(pos[0], pos[1], 100, 3)
+    def draw(self, surface, ship, asteroids, a_group):
+        the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
+        print(ship.ship_pos_y)
+        while self.propogate < WindowWidth:
+            the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
+            self.propogate += 10
+            surface.blit(laser, the_laser_pos)
+            self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 1, 1)
+            #pygame.draw.rect(surface, [255, 0, 0], [the_laser_pos[0], the_laser_pos[1], 100, 3], 1)
+            if self.is_colliding(asteroids, a_group, surface):
+                self.propogate=0
+                break
+        self.propogate = 0
 
-    def draw(self, surface):
-        print ("in fire")
-        the_laser_pos = self.laser_pos
-        surface.blit(laser, the_laser_pos)
-        self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 50, 10)
+    def is_colliding(self, asteroids, a_group, surface):
+        a = asteroids
+        a_g = a_group
+        shoot_em_surface = surface
+        for i in asteroids:
+            if self.rect.colliderect(i.rect):
+                i.kill()
 
 
 def rand_coord():
@@ -228,7 +240,7 @@ def main():
     e = Explosion()
     e_group = pygame.sprite.Group(e)
 
-    l = Laser ((300, (WindowHeight / 2)))
+    weapon_1 = Laser((300, (WindowHeight / 2)))
 
 
     # Generate a list of "wave_list" Asteroid objects
@@ -285,8 +297,8 @@ def main():
         if keys[pygame.K_DOWN]:
             s.move(1)
         if keys[pygame.K_SPACE]:
-            print("FIRE")
-            l.draw(shoot_em_surface)
+            weapon_1.draw(shoot_em_surface, s, asteroids, asteroids_group)
+            pygame.display.flip()
         if keys[pygame.K_x]:
             #asteroids.pop(0)
             asteroids.pop(0)
