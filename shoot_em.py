@@ -66,6 +66,8 @@ class Ship(object):
         self.mover = 0
         self.velocity = 0
         self.direction = 0
+        self.damage = 0
+        self.damage_threshold = 50
 
     def draw(self, surface):
         the_ship_pos = self.ship_pos
@@ -105,6 +107,11 @@ class Ship(object):
 
     def reset_velocity(self):
         self.velocity = 0
+
+    def is_ship_destroyed(self):
+        if self.damage > self.damage_threshold:
+            return True
+
 
 
 class Asteroid(pygame.sprite.Sprite):
@@ -146,10 +153,14 @@ class Asteroid(pygame.sprite.Sprite):
         e = explode
         shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
+            print ("collided with ship and the damage is " + str(s.damage))
+            print ("*****")
+            s.damage += 1
             e.update_sprite(s.ship_pos)
             e.animation()
             e_group.draw(shoot_em_surface)
-            self.kill()
+            if s.is_ship_destroyed():
+                print ("BOOM! Life is lost!!")
 
 
 class Explosion(pygame.sprite.Sprite):
@@ -177,7 +188,7 @@ class Explosion(pygame.sprite.Sprite):
 
 
 def rand_coord():
-    return random.randrange(300, WindowWidth), random.randrange(0, WindowHeight)
+    return random.randrange(300, WindowWidth), random.randrange(50, WindowHeight - 50)
 
 
 def main():
@@ -202,7 +213,7 @@ def main():
 
     # Generate a list of "wave_list" Asteroid objects
     wave_list = [4, 34, 45, 100]
-    wave = wave_list[1]
+    wave = wave_list[3]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
