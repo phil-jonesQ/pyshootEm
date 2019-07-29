@@ -29,6 +29,7 @@ ASTEROID_FRAMES = 16
 # Load images
 BG = pygame.transform.scale(pygame.image.load("game_assets/BG.jpg"), (WindowWidth, WindowHeight))
 ship = pygame.transform.scale(pygame.image.load("game_assets/Ship1_new.png"), (100, 30))
+laser = pygame.transform.scale(pygame.image.load("game_assets/laser.png"), (100, 3))
 
 # Load Asteroids
 a_images = []
@@ -113,7 +114,6 @@ class Ship(object):
             return True
 
 
-
 class Asteroid(pygame.sprite.Sprite):
     def __init__(self, pos):
         super(Asteroid, self).__init__()
@@ -142,11 +142,10 @@ class Asteroid(pygame.sprite.Sprite):
         # Constrain
         if updated_x < -100:
             self.scroll = 0
-            updated_x = WindowWidth
+            self.a_pos = (WindowWidth, self.a_pos[1])
             #self.kill()
         self.rect = pygame.Rect(updated_x, self.a_pos[1], 40, 40)
-        #pygame.draw.rect(surface, [255, 0, 0], [updated_x + 20, self.a_pos[1] + 20, 40, 40], 1)
-        #print (updated_x)
+        #print (updated_x,self.a_pos[1], self.a_pos[0])
 
     def is_colliding(self, ship, explode, e_group, surface):
         s = ship
@@ -187,8 +186,26 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = pygame.Rect(pos[0], pos[1], 50, 50)
 
 
+class Laser(pygame.sprite.Sprite):
+    def __init__(self, pos):
+        super(Laser, self).__init__()
+        self.images = laser
+        self.laser_pos = pos
+        self.laser_pos_x = self.laser_pos[0]
+        self.ship_pos_y = self.laser_pos[1]
+
+    def update_sprite(self):
+        self.rect = pygame.Rect(pos[0], pos[1], 100, 3)
+
+    def draw(self, surface):
+        print ("in fire")
+        the_laser_pos = self.laser_pos
+        surface.blit(laser, the_laser_pos)
+        self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 50, 10)
+
+
 def rand_coord():
-    return random.randrange(300, WindowWidth), random.randrange(50, WindowHeight - 50)
+    return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
 
 
 def main():
@@ -211,9 +228,12 @@ def main():
     e = Explosion()
     e_group = pygame.sprite.Group(e)
 
+    l = Laser ((300, (WindowHeight / 2)))
+
+
     # Generate a list of "wave_list" Asteroid objects
-    wave_list = [4, 34, 45, 100]
-    wave = wave_list[3]
+    wave_list = [16, 32, 64, 128]
+    wave = wave_list[0]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
@@ -266,12 +286,14 @@ def main():
             s.move(1)
         if keys[pygame.K_SPACE]:
             print("FIRE")
+            l.draw(shoot_em_surface)
         if keys[pygame.K_x]:
             #asteroids.pop(0)
-            #asteroids.pop(0)
+            asteroids.pop(0)
             #e.update_sprite((10, 10))
             #e_group.draw(shoot_em_surface)
-            e.remove(e_group)
+            #l.update_sprite(shoot_em_surface)
+
 
 # Call main
 if __name__ == "__main__":
