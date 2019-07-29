@@ -196,9 +196,10 @@ class Laser(object):
     def draw(self, surface, ship, asteroids, a_group):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
         print(ship.ship_pos_y)
-        while self.propogate < WindowWidth:
+        while the_laser_pos[0] < WindowWidth /2:
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
-            self.propogate += 10
+            self.propogate += 5
+            print (self.propogate)
             surface.blit(laser, the_laser_pos)
             self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 1, 1)
             #pygame.draw.rect(surface, [255, 0, 0], [the_laser_pos[0], the_laser_pos[1], 100, 3], 1)
@@ -214,7 +215,7 @@ class Laser(object):
         for i in asteroids:
             if self.rect.colliderect(i.rect):
                 i.kill()
-
+                asteroids.remove(i)
 
 def rand_coord():
     return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
@@ -245,7 +246,7 @@ def main():
 
     # Generate a list of "wave_list" Asteroid objects
     wave_list = [16, 32, 64, 128]
-    wave = wave_list[0]
+    wave = wave_list[3]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
