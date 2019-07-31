@@ -35,7 +35,8 @@ laser = pygame.transform.scale(pygame.image.load("game_assets/laser.png"), (100,
 a_images = []
 path = "game_assets/medium/a1"
 for file_name in os.listdir(path):
-    image = pygame.transform.scale(pygame.image.load(path + os.sep + file_name), (80, 80))
+    image = pygame.transform.scale(pygame.image.load(path + os.sep + file_name), (60, 60))
+    #image = pygame.image.load(path + os.sep + file_name)
     a_images.append(image)
 
 # Load Explosions
@@ -57,7 +58,7 @@ clock = pygame.time.Clock()
 
 
 # Ship Class
-class Ship(object):
+class Ship(pygame.sprite.Sprite):
 
     def __init__(self, start_pos):
         super(Ship, self).__init__()
@@ -69,11 +70,15 @@ class Ship(object):
         self.direction = 0
         self.damage = 0
         self.damage_threshold = 50
+        self.rect2 = ship.get_rect()
+        self.radius = 35
+
 
     def draw(self, surface):
         the_ship_pos = self.ship_pos
         surface.blit(ship, the_ship_pos)
-        self.rect = pygame.Rect(the_ship_pos[0], the_ship_pos[1], 50, 10)
+        self.rect = pygame.Rect(the_ship_pos[0], the_ship_pos[1], 50, 30)
+        #pygame.draw.circle(ship, RED, self.rect2.center, self.radius)
         #surface.blit(self.rect, the_ship_pos)
         #pygame.draw.rect(surface, [255, 0, 0], [the_ship_pos[0], the_ship_pos[1], 50, 30], 1)
 
@@ -125,7 +130,11 @@ class Asteroid(pygame.sprite.Sprite):
         self.index = 0
         # now the image that we will display will be the index from the image array
         self.image = self.images[self.index]
-
+        self.rect = self.images[self.index]
+        self.rect = pygame.rect.Rect(self.a_pos[0], self.a_pos[1], 60, 60)
+        #self.radius = int(self.rect2.width * .75 / 3)
+        #self.image, self.rect = pygame.image.load("balloon.png")
+        #self.mask = pygame.mask.from_surface(self.image)
     def animation(self):
         # when the update method is called, we will increment the index
         self.index += 1
@@ -144,16 +153,24 @@ class Asteroid(pygame.sprite.Sprite):
             self.scroll = 0
             self.a_pos = (WindowWidth, self.a_pos[1])
             #self.kill()
-        self.rect = pygame.Rect(updated_x, self.a_pos[1], 40, 40)
+
+        #surface.blit(self.images[self.index], (updated_x, self.a_pos[1]))
+        self.rect = pygame.Rect(updated_x, self.a_pos[1], 60, 60)
+        #self.rect = self.rect.inflate(100, 100)
+        #self.rect = pygame.Rect(self.image.get_rect().left + 20, self.image.get_rect().top / 4, 20, self.image.get_rect().height / 4)
+
+        #pygame.draw.circle(surface, RED, self.rect.center, self.radius)
         #print (updated_x,self.a_pos[1], self.a_pos[0])
+        pygame.draw.rect(surface, [255, 0, 0], [updated_x, self.a_pos[1], 60, 60], 1)
+
 
     def is_colliding(self, ship, explode, e_group, surface):
         s = ship
         e = explode
         shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
-            print("collided with ship and the damage is " + str(s.damage))
-            print("*****")
+            #print("collided with ship and the damage is " + str(s.damage))
+            #print("*****")
             s.damage += 1
             e.update_sprite(s.ship_pos)
             e.animation()
@@ -186,36 +203,49 @@ class Explosion(pygame.sprite.Sprite):
         self.rect = pygame.Rect(pos[0], pos[1], 50, 50)
 
 
-class Laser(object):
+class Laser(pygame.sprite.Sprite):
     def __init__(self, pos):
-        self.images = laser
+        super(Laser, self).__init__()
+        self.image = laser
         self.laser_pos = pos
         self.propogate = 0
         self.propogate_stop = 100
+        self.mask = pygame.mask.from_surface(self.image)
 
     def draw(self, surface, ship, asteroids, a_group):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
-        print(ship.ship_pos_y)
-        while the_laser_pos[0] < WindowWidth /2:
+        #print(ship.ship_pos_y)
+        while the_laser_pos[0] < WindowWidth:
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
             self.propogate += 5
-            print (self.propogate)
+            #print (self.propogate)
             surface.blit(laser, the_laser_pos)
-            self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 1, 1)
+            self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 100, 3)
             #pygame.draw.rect(surface, [255, 0, 0], [the_laser_pos[0], the_laser_pos[1], 100, 3], 1)
-            if self.is_colliding(asteroids, a_group, surface):
+            if self.is_colliding(self, asteroids, a_group, surface):
                 self.propogate=0
                 break
         self.propogate = 0
 
-    def is_colliding(self, asteroids, a_group, surface):
+    def is_colliding(self, l, asteroids, a_group, surface):
         a = asteroids
         a_g = a_group
         shoot_em_surface = surface
+        #blocks_hit_list = pygame.sprite.spritecollide(l, a, False)
+        #if blocks_hit_list:
+            #i.kill()
+            #asteroids.remove(i)
+            #print ("Laser hit it!!")
         for i in asteroids:
+            #if pygame.sprite.spritecollide(l, a, False, pygame.sprite.collide_mask):
             if self.rect.colliderect(i.rect):
+            #if pygame.sprite.spritecollide(self, i.rect, False):
                 i.kill()
                 asteroids.remove(i)
+                #pygame.sprite.spritecollide(i, self, False, pygame.sprite.collide_circle):
+            #if pygame.sprite.spritecollide(i.rect, self.rect, False, pygame.sprite.collide_circle):
+                #i.kill()
+                #asteroids.remove(i)
 
 def rand_coord():
     return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
@@ -246,7 +276,7 @@ def main():
 
     # Generate a list of "wave_list" Asteroid objects
     wave_list = [16, 32, 64, 128]
-    wave = wave_list[3]
+    wave = wave_list[1]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
