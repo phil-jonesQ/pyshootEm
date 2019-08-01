@@ -132,6 +132,8 @@ class Asteroid(pygame.sprite.Sprite):
         self.image = self.images[self.index]
         self.rect = self.images[self.index]
         self.rect = pygame.rect.Rect(self.a_pos[0], self.a_pos[1], 60, 60)
+        self.damage = 0
+        self.damage_threshold = 40
         #self.radius = int(self.rect2.width * .75 / 3)
         #self.image, self.rect = pygame.image.load("balloon.png")
         #self.mask = pygame.mask.from_surface(self.image)
@@ -161,7 +163,7 @@ class Asteroid(pygame.sprite.Sprite):
 
         #pygame.draw.circle(surface, RED, self.rect.center, self.radius)
         #print (updated_x,self.a_pos[1], self.a_pos[0])
-        pygame.draw.rect(surface, [255, 0, 0], [updated_x, self.a_pos[1], 60, 60], 1)
+        #pygame.draw.rect(surface, [255, 0, 0], [updated_x, self.a_pos[1], 60, 60], 1)
 
 
     def is_colliding(self, ship, explode, e_group, surface):
@@ -215,7 +217,7 @@ class Laser(pygame.sprite.Sprite):
     def draw(self, surface, ship, asteroids, a_group):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
         #print(ship.ship_pos_y)
-        while the_laser_pos[0] < WindowWidth:
+        while the_laser_pos[0] < WindowWidth / 2:
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
             self.propogate += 5
             #print (self.propogate)
@@ -240,8 +242,10 @@ class Laser(pygame.sprite.Sprite):
             #if pygame.sprite.spritecollide(l, a, False, pygame.sprite.collide_mask):
             if self.rect.colliderect(i.rect):
             #if pygame.sprite.spritecollide(self, i.rect, False):
-                i.kill()
-                asteroids.remove(i)
+                i.damage += 1
+                if i.damage > i.damage_threshold:
+                    i.kill()
+                    asteroids.remove(i)
                 #pygame.sprite.spritecollide(i, self, False, pygame.sprite.collide_circle):
             #if pygame.sprite.spritecollide(i.rect, self.rect, False, pygame.sprite.collide_circle):
                 #i.kill()
