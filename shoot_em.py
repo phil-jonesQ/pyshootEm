@@ -6,6 +6,7 @@ import re
 import pygame
 import random
 import os
+import time
 
 # Global Variables
 WindowWidth = 1400
@@ -134,9 +135,7 @@ class Asteroid(pygame.sprite.Sprite):
         self.rect = pygame.rect.Rect(self.a_pos[0], self.a_pos[1], 60, 60)
         self.damage = 0
         self.damage_threshold = 40
-        #self.radius = int(self.rect2.width * .75 / 3)
-        #self.image, self.rect = pygame.image.load("balloon.png")
-        #self.mask = pygame.mask.from_surface(self.image)
+
     def animation(self):
         # when the update method is called, we will increment the index
         self.index += 1
@@ -154,17 +153,9 @@ class Asteroid(pygame.sprite.Sprite):
         if updated_x < -100:
             self.scroll = 0
             self.a_pos = (WindowWidth, self.a_pos[1])
-            #self.kill()
-
-        #surface.blit(self.images[self.index], (updated_x, self.a_pos[1]))
         self.rect = pygame.Rect(updated_x, self.a_pos[1], 60, 60)
-        #self.rect = self.rect.inflate(100, 100)
-        #self.rect = pygame.Rect(self.image.get_rect().left + 20, self.image.get_rect().top / 4, 20, self.image.get_rect().height / 4)
-
-        #pygame.draw.circle(surface, RED, self.rect.center, self.radius)
-        #print (updated_x,self.a_pos[1], self.a_pos[0])
-        #pygame.draw.rect(surface, [255, 0, 0], [updated_x, self.a_pos[1], 60, 60], 1)
-
+        updated_y = self.a_pos[1]
+        return updated_x, updated_y
 
     def is_colliding(self, ship, explode, e_group, surface):
         s = ship
@@ -190,10 +181,18 @@ class Explosion(pygame.sprite.Sprite):
         self.index = 0
         # now the image that we will display will be the index from the image array
         self.image = self.images[self.index]
+        self.noi = 10
+        self.current_image = 0
+
+        self.time = 0
 
     def animation(self):
         # when the update method is called, we will increment the index
+        self.time += 1
         self.index += 1
+        for i in range(10):
+            self.time += i
+        self.time = 0
         # if the index is larger than the total images
         if self.index >= len(self.images):
             # we will make the index to 0 again
@@ -214,42 +213,39 @@ class Laser(pygame.sprite.Sprite):
         self.propogate_stop = 100
         self.mask = pygame.mask.from_surface(self.image)
 
-    def draw(self, surface, ship, asteroids, a_group):
+    def draw(self, surface, ship, asteroids, a_group, explosion, e_group):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
-        #print(ship.ship_pos_y)
-        while the_laser_pos[0] < WindowWidth / 2:
-            the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
+        while the_laser_pos[0] < WindowWidth /2:
             self.propogate += 5
+            the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
             #print (self.propogate)
             surface.blit(laser, the_laser_pos)
             self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 100, 3)
             #pygame.draw.rect(surface, [255, 0, 0], [the_laser_pos[0], the_laser_pos[1], 100, 3], 1)
-            if self.is_colliding(self, asteroids, a_group, surface):
+            if self.is_colliding(asteroids, a_group, surface, explosion, e_group):
                 self.propogate=0
                 break
         self.propogate = 0
 
-    def is_colliding(self, l, asteroids, a_group, surface):
-        a = asteroids
-        a_g = a_group
-        shoot_em_surface = surface
-        #blocks_hit_list = pygame.sprite.spritecollide(l, a, False)
-        #if blocks_hit_list:
-            #i.kill()
-            #asteroids.remove(i)
-            #print ("Laser hit it!!")
+    def is_colliding(self, asteroids, a_group, surface, explosion, e_group):
+        e = explosion
+        e_g = e_group
         for i in asteroids:
-            #if pygame.sprite.spritecollide(l, a, False, pygame.sprite.collide_mask):
             if self.rect.colliderect(i.rect):
-            #if pygame.sprite.spritecollide(self, i.rect, False):
                 i.damage += 1
+                #asteroid_pos = i.update_sprite(surface)
+                #e.update_sprite(asteroid_pos)
+                #e_g.draw(surface)
                 if i.damage > i.damage_threshold:
+                    for repeat in range(15):
+                        asteroid_pos = i.update_sprite(surface)
+                        e.update_sprite(asteroid_pos)
+                        e.animation()
+                        e_g.draw(surface)
                     i.kill()
+
+
                     asteroids.remove(i)
-                #pygame.sprite.spritecollide(i, self, False, pygame.sprite.collide_circle):
-            #if pygame.sprite.spritecollide(i.rect, self.rect, False, pygame.sprite.collide_circle):
-                #i.kill()
-                #asteroids.remove(i)
 
 def rand_coord():
     return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
@@ -301,12 +297,6 @@ def main():
             i.update_sprite(shoot_em_surface)
             i.is_colliding(s, e, e_group, shoot_em_surface)
 
-        # Ensure the explosion is animated
-        #e.animation()
-        #e.update_sprite((60, 60))
-        #e_group.draw(shoot_em_surface)
-        #e.remove(e_group)
-
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
 
@@ -332,7 +322,7 @@ def main():
         if keys[pygame.K_DOWN]:
             s.move(1)
         if keys[pygame.K_SPACE]:
-            weapon_1.draw(shoot_em_surface, s, asteroids, asteroids_group)
+            weapon_1.draw(shoot_em_surface, s, asteroids, asteroids_group, e, e_group)
             pygame.display.flip()
         if keys[pygame.K_x]:
             #asteroids.pop(0)
