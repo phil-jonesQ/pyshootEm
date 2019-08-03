@@ -27,6 +27,11 @@ SHIP_WIDTH = 40
 
 ASTEROID_FRAMES = 16
 
+#Load Sound effects
+pygame.mixer.init()
+crash_sound = pygame.mixer.Sound("game_assets/sounds/boom.wav")
+laser_sound = pygame.mixer.Sound("game_assets/sounds/laser.wav")
+
 # Load images
 BG = pygame.transform.scale(pygame.image.load("game_assets/BG.jpg"), (WindowWidth, WindowHeight))
 ship = pygame.transform.scale(pygame.image.load("game_assets/Ship1_new.png"), (100, 30))
@@ -194,25 +199,28 @@ class Explosion(pygame.sprite.Sprite):
         self.index = 0
         # now the image that we will display will be the index from the image array
         self.image = self.images[self.index]
-        self.noi = 10
         self.current_image = 0
-
-        self.time = 0
-
+        self.frame_total = 0
     def animation(self):
         # when the update method is called, we will increment the index
-        self.time += 1
         self.index += 1
         # if the index is larger than the total images
         if self.index >= len(self.images):
             # we will make the index to 0 again
             self.index = 0
+            self.frame_total += 1
         # finally we will update the image that will be displayed
         self.image = self.images[self.index]
         self.time = 0
 
     def update_sprite(self, pos):
         self.rect = pygame.Rect(pos[0], pos[1], 57, 57)
+
+    def reset_frames(self):
+        self.frame_total = 0
+
+    def get_frames(self):
+        return self.frame_total
 
 
 class Laser(pygame.sprite.Sprite):
@@ -226,7 +234,7 @@ class Laser(pygame.sprite.Sprite):
         self.charged = True
         self.hit = False
         self.asteroid_dead_pos = (0, 0)
-        self.destroyed_asteroid = (False, (-30, 30))
+        self.destroyed_asteroid = (False, (-30, -30))
 
     def draw(self, surface, ship, asteroids):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
@@ -255,12 +263,16 @@ class Laser(pygame.sprite.Sprite):
                 i.damage += 1
                 self.hit = True
                 if i.damage > i.damage_threshold:
+                    pygame.mixer.Sound.play(crash_sound)
+                    pygame.mixer.music.stop()
                     i.kill()
                     self.asteroid_dead_pos = i.update_sprite(surface)
                     asteroids.remove(i)
                 return self.hit, self.asteroid_dead_pos
         return False, self.asteroid_dead_pos
 
+    def reset_destroyed_asteroid(self):
+        self.destroyed_asteroid = (False, (-30, -30))
 
 def rand_coord():
     return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
@@ -289,12 +301,15 @@ def main():
     e = Explosion()
     e_group = pygame.sprite.Group(e)
 
+    e1 = Explosion()
+    e1_group = pygame.sprite.Group(e1)
+
     weapon_1 = Laser((300, (WindowHeight / 2)))
 
 
     # Generate a list of "wave_list" Asteroid objects
     wave_list = [6, 32, 64, 128]
-    wave = wave_list[0]
+    wave = wave_list[1]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
 
@@ -315,36 +330,24 @@ def main():
         for i in asteroids:
             i.animation()
             i.update_sprite(shoot_em_surface)
-            i.is_colliding(s, e, e_group, shoot_em_surface)
+            i.is_colliding(s, e1, e1_group, shoot_em_surface)
 
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
 
 
-        # Always Count 2 seconds
-        if start_timer:
-            start_ticks = pygame.time.get_ticks()
-            start_timer = False
-            run_explosion = True
-        if seconds > 2:
-            run_explosion = False
-            start_timer = True
-
-
-        seconds = (pygame.time.get_ticks() - start_ticks) / 1000  # calculate how many seconds
-        #print(seconds)
-        #print (run_explosion)
+        print (e.get_frames())
 
         # Check if we have a destroyed asteroid
-        if destroyed is not None and run_explosion and seconds < 1.5:
+        if destroyed is not None and run_explosion:
             if destroyed[1] != (0, 0):
-                print(seconds)
                 e.update_sprite(destroyed[1])
                 e.animation()
                 e_group.draw(shoot_em_surface)
-                if not run_explosion:
+                if e.get_frames() >= 1:
                     e.kill()
-
+                    e.reset_frames()
+                    weapon_1.reset_destroyed_asteroid()
 
         # Update the screen
         pygame.display.flip()
@@ -370,16 +373,13 @@ def main():
             s.move(2)
         #print (weapon_1.charged)
         if keys[pygame.K_SPACE]:
+            pygame.mixer.Sound.play(laser_sound)
+            pygame.mixer.music.stop()
+            e = Explosion()
+            e_group = pygame.sprite.Group(e)
             destroyed = weapon_1.draw(shoot_em_surface, s, asteroids)
-
-
             pygame.display.flip()
-        if keys[pygame.K_x]:
-            #asteroids.pop(0)
-            asteroids.pop(0)
-            #e.update_sprite((10, 10))
-            #e_group.draw(shoot_em_surface)
-            #l.update_sprite(shoot_em_surface)
+
 
 
 # Call main
