@@ -226,26 +226,28 @@ class Laser(pygame.sprite.Sprite):
         self.charged = True
         self.hit = False
         self.asteroid_dead_pos = (0, 0)
-        self.destroyed_asteroid = (False, (0, 0))
+        self.destroyed_asteroid = (False, (-30, 30))
 
     def draw(self, surface, ship, asteroids):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
-        i = 0
         while the_laser_pos[0] < WindowWidth:
             self.propogate += 5
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
             surface.blit(laser, the_laser_pos)
             self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 50, 1)
-            if self.is_colliding(asteroids, surface):
+            #print(self.is_colliding(asteroids, surface))
+            if self.is_colliding(asteroids, surface)[0]:
                 self.propogate = 0
                 self.destroyed_asteroid = self.is_colliding(asteroids, surface)
                 break
             else:
                 self.hit = False
-                self.destroyed_asteroid = (False, (0, 0))
+                self.destroyed_asteroid = self.is_colliding(asteroids, surface)
 
         self.propogate = 0
-        return self.destroyed_asteroid
+        #print(self.destroyed_asteroid)
+        if self.destroyed_asteroid is not None:
+            return self.destroyed_asteroid
 
     def is_colliding(self, asteroids, surface):
         for i in asteroids:
@@ -257,8 +259,7 @@ class Laser(pygame.sprite.Sprite):
                     self.asteroid_dead_pos = i.update_sprite(surface)
                     asteroids.remove(i)
                 return self.hit, self.asteroid_dead_pos
-
-
+        return False, self.asteroid_dead_pos
 
 
 def rand_coord():
@@ -292,11 +293,14 @@ def main():
 
 
     # Generate a list of "wave_list" Asteroid objects
-    wave_list = [16, 32, 64, 128]
-    wave = wave_list[1]
+    wave_list = [6, 32, 64, 128]
+    wave = wave_list[0]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
 
+    run_explosion = True
+    seconds = 0
+    start_timer = True
     # Start main game loop
     while loop:
 
@@ -316,13 +320,31 @@ def main():
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
 
+
+        # Always Count 2 seconds
+        if start_timer:
+            start_ticks = pygame.time.get_ticks()
+            start_timer = False
+            run_explosion = True
+        if seconds > 2:
+            run_explosion = False
+            start_timer = True
+
+
+        seconds = (pygame.time.get_ticks() - start_ticks) / 1000  # calculate how many seconds
+        #print(seconds)
+        #print (run_explosion)
+
         # Check if we have a destroyed asteroid
-        print (destroyed)
-        if destroyed is not None:
+        if destroyed is not None and run_explosion and seconds < 1.5:
             if destroyed[1] != (0, 0):
+                print(seconds)
                 e.update_sprite(destroyed[1])
                 e.animation()
                 e_group.draw(shoot_em_surface)
+                if not run_explosion:
+                    e.kill()
+
 
         # Update the screen
         pygame.display.flip()
