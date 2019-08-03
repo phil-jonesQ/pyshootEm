@@ -224,49 +224,42 @@ class Laser(pygame.sprite.Sprite):
         self.propogate_stop = 100
         self.mask = pygame.mask.from_surface(self.image)
         self.charged = True
+        self.hit = False
+        self.asteroid_dead_pos = (0, 0)
+        self.destroyed_asteroid = (False, (0, 0))
 
-    def draw(self, surface, ship, asteroids, a_group, explosion, e_group):
+    def draw(self, surface, ship, asteroids):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
         i = 0
-        while i < 1000:
-            i += 1
-            self.charged = False
+        while the_laser_pos[0] < WindowWidth:
             self.propogate += 5
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
-            #print (self.propogate)
             surface.blit(laser, the_laser_pos)
-            self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 10, 3)
-            #pygame.draw.rect(surface, [255, 0, 0], [the_laser_pos[0], the_laser_pos[1], 100, 3], 1)
-            if self.is_colliding(asteroids, a_group, surface, explosion, e_group):
+            self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 50, 1)
+            if self.is_colliding(asteroids, surface):
+                self.propogate = 0
+                self.destroyed_asteroid = self.is_colliding(asteroids, surface)
                 break
-        self.propogate = 0
+            else:
+                self.hit = False
+                self.destroyed_asteroid = (False, (0, 0))
 
-    def is_colliding(self, asteroids, a_group, surface, explosion, e_group):
-        e = explosion
-        e_g = e_group
-        e1 = Explosion()
-        e1_g = pygame.sprite.Group(e1)
+        self.propogate = 0
+        return self.destroyed_asteroid
+
+    def is_colliding(self, asteroids, surface):
         for i in asteroids:
             if self.rect.colliderect(i.rect):
                 i.damage += 1
-                #print (i.damage)
-                #asteroid_pos = i.update_sprite(surface)
-                #e.update_sprite(asteroid_pos)
-                #e_g.draw(surface)
+                self.hit = True
                 if i.damage > i.damage_threshold:
                     i.kill()
-                    #for repeat in range(15):
-                    asteroid_pos = i.update_sprite(surface)
-                    e.update_sprite(asteroid_pos)
-                    e.animation()
-                    e_g.draw(surface)
-                    e1.update_sprite(asteroid_pos + (10, -10))
-                    e1.animation()
-                    e1_g.draw(surface)
-                    i.kill()
-
-
+                    self.asteroid_dead_pos = i.update_sprite(surface)
                     asteroids.remove(i)
+                return self.hit, self.asteroid_dead_pos
+
+
+
 
 def rand_coord():
     return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
@@ -286,6 +279,9 @@ def main():
     loop = True
     game_over = False
 
+    # Destroyed
+    destroyed = None
+
     # Initialise game objects
     s = Ship((0, (WindowHeight / 2)))
 
@@ -299,7 +295,6 @@ def main():
     wave_list = [16, 32, 64, 128]
     wave = wave_list[1]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
-    #asteroids_group = [pygame.sprite.Group(asteroids) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
 
     # Start main game loop
@@ -321,6 +316,13 @@ def main():
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
 
+        # Check if we have a destroyed asteroid
+        print (destroyed)
+        if destroyed is not None:
+            if destroyed[1] != (0, 0):
+                e.update_sprite(destroyed[1])
+                e.animation()
+                e_group.draw(shoot_em_surface)
 
         # Update the screen
         pygame.display.flip()
@@ -344,9 +346,11 @@ def main():
             s.move(1)
         if keys[pygame.K_RIGHT]:
             s.move(2)
-        print (weapon_1.charged)
+        #print (weapon_1.charged)
         if keys[pygame.K_SPACE]:
-            weapon_1.draw(shoot_em_surface, s, asteroids, asteroids_group, e, e_group)
+            destroyed = weapon_1.draw(shoot_em_surface, s, asteroids)
+
+
             pygame.display.flip()
         if keys[pygame.K_x]:
             #asteroids.pop(0)
