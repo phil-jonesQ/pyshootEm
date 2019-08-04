@@ -1,18 +1,22 @@
-""" Version 1.00 - simple game
-Phil Jones July 2019 - phil.jones.24.4@gmail.com
+""" Version 1.02 - asteroid shoot em up game, with little plot or point..
+working game, but still a few glitches and needs a few more features adding
+Phil Jones August 2019 - phil.jones.24.4@gmail.com
 """
 
-import re
 import pygame
 import random
 import os
-import time
 
-# Global Variables
+# Global Constants
 WindowWidth = 1400
 WindowHeight = 700
 x_POS = WindowWidth / 2
 y_POS = WindowHeight / 2
+
+# Lives is a constant
+lives = 3
+# Version constant
+version = "1.02"
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -52,13 +56,6 @@ for file_name in os.listdir(path):
     image = pygame.transform.scale(pygame.image.load(path + os.sep + file_name), (57, 57))
     e_images.append(image)
 
-# Lives is a constant
-lives = 3
-
-
-# Version constant
-version = "1.01"
-
 # Use the pygame clock so we can set the frame rate of the game
 clock = pygame.time.Clock()
 
@@ -77,8 +74,6 @@ class Ship(pygame.sprite.Sprite):
         self.direction = 0
         self.damage = 0
         self.damage_threshold = 50
-        self.rect2 = ship.get_rect()
-        self.radius = 35
 
     def draw(self, surface):
         the_ship_pos = self.ship_pos
@@ -191,7 +186,6 @@ class Asteroid(pygame.sprite.Sprite):
         shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
             pygame.mixer.Sound.play(crash_sound)
-            #pygame.mixer.music.stop()
             s.damage += 1
             e.update_sprite(s.ship_pos)
             e.animation()
@@ -213,6 +207,7 @@ class Explosion(pygame.sprite.Sprite):
         self.image = self.images[self.index]
         self.current_image = 0
         self.frame_total = 0
+
     def animation(self):
         # when the update method is called, we will increment the index
         self.index += 1
@@ -255,7 +250,6 @@ class Laser(pygame.sprite.Sprite):
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
             surface.blit(laser, the_laser_pos)
             self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 50, 1)
-            #print(self.is_colliding(asteroids, surface))
             if self.is_colliding(asteroids, surface)[0]:
                 self.propogate = 0
                 self.destroyed_asteroid = self.is_colliding(asteroids, surface)
@@ -276,7 +270,6 @@ class Laser(pygame.sprite.Sprite):
                 self.hit = True
                 if i.damage > i.damage_threshold:
                     pygame.mixer.Sound.play(crash_sound)
-                    #pygame.mixer.music.stop()
                     i.kill()
                     self.asteroid_dead_pos = i.update_sprite(surface)
                     asteroids.remove(i)
@@ -302,6 +295,15 @@ def generate_level(wave_list, current_wave):
     return asteroids, asteroids_group
 
 
+def reset_timer():
+    start_ticks = pygame.time.get_ticks()
+    return start_ticks
+
+
+def reset_game():
+    pass
+
+
 def main():
     # Create the Window
     pygame.init()
@@ -313,7 +315,6 @@ def main():
     font = pygame.font.SysFont('Arial', 30, False, False)
 
     # Globals
-
     global destroyed_pos, hide_asteroid_destroy, lives
 
     # Game loop and control booleans / counters
@@ -336,15 +337,13 @@ def main():
 
     weapon_1 = Laser((300, (WindowHeight / 2)))
 
+    start_ticks = reset_timer()
+
     # Generate a list of "wave_list" Asteroid objects
     wave_list = [2, 4, 8, 16, 32, 64, 128, 256, 512]
     current_wave = 0
     generate_level(wave_list, 0)
     asteroids, asteroids_group = generate_level(wave_list, 0)
-
-
-    timer = 0
-
 
     # Start main game loop
     while loop:
@@ -352,8 +351,11 @@ def main():
         # Draw background image
         shoot_em_surface.blit(BG, [0, 0])
 
+        # Timer
+        seconds = (pygame.time.get_ticks() - start_ticks) / 1000
+
         # Update Display for user
-        text = font.render("TIME " + str(timer), True, WHITE)
+        text = font.render("TIME " + str(seconds), True, WHITE)
         text2 = font.render("WAVE " + str(current_wave), True, WHITE)
         text3 = font.render("SHIP DAMAGE " + str(s.damage), True, WHITE)
         text4 = font.render("SHIPS LEFT " + str(lives), True, WHITE)
@@ -361,6 +363,7 @@ def main():
         shoot_em_surface.blit(text2, [WindowWidth - 1000, 0])
         shoot_em_surface.blit(text3, [WindowWidth - 700, 0])
         shoot_em_surface.blit(text4, [WindowWidth - 300, 0])
+
         # Draw our ship
         s.draw(shoot_em_surface)
 
@@ -373,7 +376,7 @@ def main():
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
 
-        # Check if we have a destroyed asteroid
+        # Check if we have a destroyed an asteroid, if so run the explosion in it's position for one cycle
         if destroyed is not None:
             destroyed_pos = destroyed[1]
             if destroyed_pos != (-30, -30) and not hide_asteroid_destroy:
@@ -384,17 +387,18 @@ def main():
                     destroyed_pos = weapon_1.reset_destroyed_asteroid()
                     e.reset_frames()
                     hide_asteroid_destroy = True
+
         # Check for game_over
         if lives < 0:
             game_over = True
         if game_over:
             loop = False
 
-        # Increment Wave
-        print (len(asteroids))
+        # Increment Wave - v1.00 cap it at 8
         if len(asteroids) == 0:
             current_wave += 1
             asteroids, asteroids_group = generate_level(wave_list, current_wave)
+            start_ticks = reset_timer()
             if current_wave > 8:
                 current_wave == 8
 
