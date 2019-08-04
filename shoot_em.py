@@ -71,7 +71,8 @@ class Ship(pygame.sprite.Sprite):
         self.ship_pos = start_pos
         self.ship_pos_x = self.ship_pos[0]
         self.ship_pos_y = self.ship_pos[1]
-        self.mover = 0
+        self.mover_x = 0
+        self.mover_y = 0
         self.velocity = 0
         self.direction = 0
         self.damage = 0
@@ -79,56 +80,59 @@ class Ship(pygame.sprite.Sprite):
         self.rect2 = ship.get_rect()
         self.radius = 35
 
-
     def draw(self, surface):
         the_ship_pos = self.ship_pos
         surface.blit(ship, the_ship_pos)
         self.rect = pygame.Rect(the_ship_pos[0], the_ship_pos[1], 50, 30)
-        #pygame.draw.circle(ship, RED, self.rect2.center, self.radius)
-        #surface.blit(self.rect, the_ship_pos)
-        #pygame.draw.rect(surface, [255, 0, 0], [the_ship_pos[0], the_ship_pos[1], 50, 30], 1)
 
     def move(self, ship_dir):
-        #print(self.velocity, self.ship_pos, ship_dir, self.mover)
         if ship_dir == 1:
             self.velocity += 0.4
             if self.velocity > 0.6:
                 self.velocity += 0.8
             if self.velocity > 0.16:
                 self.velocity += 3
-            self.mover += self.velocity
-            self.ship_pos = (self.ship_pos_x, self.ship_pos_y + self.mover)
+            self.mover_y += self.velocity
             # Ship hits edge
             if self.ship_pos[1] > WindowHeight - SHIP_WIDTH:
-                self.velocity = 0
-                self.ship_pos = (0, WindowHeight - SHIP_WIDTH)
-                self.mover = WindowHeight / 2 - SHIP_WIDTH
+                self.mover_y = 0
+                self.ship_pos = (self.ship_pos_x, 0)
         if ship_dir == -1:
             self.velocity += 0.4
             if self.velocity > 0.6:
                 self.velocity += 0.8
             if self.velocity > 0.16:
                 self.velocity += 3
-            self.mover -= self.velocity
-            self.ship_pos = (self.ship_pos_x, self.ship_pos_y + self.mover)
+            self.mover_y -= self.velocity
             # Ship hits edge
             if self.ship_pos[1] < 0:
-                self.velocity = 0
-                self.ship_pos = (0, 0)
-                self.mover = -WindowHeight / 2
+                print ("Yeah hit top man")
+                self.mover_y = 0
+                self.ship_pos = (self.ship_pos_x, WindowHeight - SHIP_WIDTH)
         if ship_dir == 2:
             self.velocity += 0.4
             if self.velocity > 0.6:
                 self.velocity += 0.8
             if self.velocity > 0.16:
                 self.velocity += 3
-            self.mover += self.velocity
-            self.ship_pos = (self.ship_pos_x + self.mover, self.ship_pos_y)
+            self.mover_x += self.velocity
             # Ship hits edge
-            if self.ship_pos[1] < 0:
-                self.velocity = 0
-                self.ship_pos = (0, 0)
-                self.mover = -WindowHeight / 2
+            if self.ship_pos[0] > WindowWidth:
+                self.mover_x = 0
+                self.ship_pos = (0, self.ship_pos_y)
+                #self.mover = -WindowHeight / 2
+        if ship_dir == -2:
+            self.velocity += 0.4
+            if self.velocity > 0.6:
+                self.velocity += 0.8
+            if self.velocity > 0.16:
+                self.velocity += 3
+            self.mover_x -= self.velocity
+            # Ship hits edge
+            if self.ship_pos[0] < 0:
+                self.mover_x = 0
+                self.ship_pos = (WindowWidth - SHIP_WIDTH, self.ship_pos_y)
+        self.ship_pos = (self.ship_pos_x + self.mover_x, self.ship_pos_y + self.mover_y)
 
     def reset_velocity(self):
         self.velocity = 0
@@ -145,7 +149,6 @@ class Asteroid(pygame.sprite.Sprite):
         self.a_pos = pos
         self.scroll = 0
         # index value to get the image from the array
-        # initially it is 0
         self.index = 0
         # now the image that we will display will be the index from the image array
         self.image = self.images[self.index]
@@ -233,13 +236,13 @@ class Laser(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.charged = True
         self.hit = False
-        self.asteroid_dead_pos = (0, 0)
+        self.asteroid_dead_pos = (-30, -30)
         self.destroyed_asteroid = (False, (-30, -30))
 
     def draw(self, surface, ship, asteroids):
         the_laser_pos = (ship.ship_pos[0] + 50, ship.ship_pos[1] + 20)
         while the_laser_pos[0] < WindowWidth:
-            self.propogate += 5
+            self.propogate += 10
             the_laser_pos = (the_laser_pos[0] + self.propogate, the_laser_pos[1])
             surface.blit(laser, the_laser_pos)
             self.rect = pygame.Rect(the_laser_pos[0], the_laser_pos[1], 50, 1)
@@ -253,11 +256,11 @@ class Laser(pygame.sprite.Sprite):
                 self.destroyed_asteroid = self.is_colliding(asteroids, surface)
 
         self.propogate = 0
-        #print(self.destroyed_asteroid)
         if self.destroyed_asteroid is not None:
             return self.destroyed_asteroid
 
     def is_colliding(self, asteroids, surface):
+        global hide_asteroid_destroy
         for i in asteroids:
             if self.rect.colliderect(i.rect):
                 i.damage += 1
@@ -268,14 +271,18 @@ class Laser(pygame.sprite.Sprite):
                     i.kill()
                     self.asteroid_dead_pos = i.update_sprite(surface)
                     asteroids.remove(i)
+                    hide_asteroid_destroy = False
                 return self.hit, self.asteroid_dead_pos
         return False, self.asteroid_dead_pos
 
     def reset_destroyed_asteroid(self):
-        self.destroyed_asteroid = (False, (-30, -30))
+        reset_pos = self.destroyed_asteroid = (False, (-30, -30))
+        return reset_pos
 
 def rand_coord():
-    return random.randrange(200, WindowWidth), random.randrange(30, WindowHeight - 50)
+    rand_x = random.randrange(200, WindowWidth)
+    rand_y = random.randrange(30, WindowHeight - 50)
+    return rand_x, rand_y
 
 
 def main():
@@ -294,6 +301,13 @@ def main():
 
     # Destroyed
     destroyed = None
+    global destroyed_pos, hide_asteroid_destroy, bound_up, bound_bottom, bound_left, bound_right
+    destroyed_pos = (-30, -30)
+    hide_asteroid_destroy = True
+    bound_up = False
+    bound_bottom = False
+    bound_left = False
+    bound_right = False
 
     # Initialise game objects
     s = Ship((0, (WindowHeight / 2)))
@@ -313,9 +327,6 @@ def main():
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
 
-    run_explosion = True
-    seconds = 0
-    start_timer = True
     # Start main game loop
     while loop:
 
@@ -335,26 +346,25 @@ def main():
         # Draw the asteroid sprite group
         asteroids_group[0].draw(shoot_em_surface)
 
-
-        print (e.get_frames())
-
         # Check if we have a destroyed asteroid
-        if destroyed is not None and run_explosion:
-            if destroyed[1] != (0, 0):
-                e.update_sprite(destroyed[1])
+        if destroyed is not None:
+            destroyed_pos = destroyed[1]
+            if destroyed_pos != (-30, -30) and not hide_asteroid_destroy:
+                e.update_sprite(destroyed_pos)
                 e.animation()
                 e_group.draw(shoot_em_surface)
-                if e.get_frames() >= 1:
-                    e.kill()
+                if e.get_frames() > 0:
+                    destroyed_pos = weapon_1.reset_destroyed_asteroid()
+                    #e.kill()
                     e.reset_frames()
-                    weapon_1.reset_destroyed_asteroid()
+                    hide_asteroid_destroy = True
 
         # Update the screen
         pygame.display.flip()
 
 
         # Control frame rate
-        clock.tick(10)
+        clock.tick(15)
 
         # Handle user input
         for event in pygame.event.get():
@@ -371,12 +381,14 @@ def main():
             s.move(1)
         if keys[pygame.K_RIGHT]:
             s.move(2)
+        if keys[pygame.K_LEFT]:
+            s.move(-2)
         #print (weapon_1.charged)
         if keys[pygame.K_SPACE]:
             pygame.mixer.Sound.play(laser_sound)
             pygame.mixer.music.stop()
-            e = Explosion()
-            e_group = pygame.sprite.Group(e)
+             #e = Explosion()
+            #e_group = pygame.sprite.Group(e)
             destroyed = weapon_1.draw(shoot_em_surface, s, asteroids)
             pygame.display.flip()
 
