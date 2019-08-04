@@ -106,7 +106,6 @@ class Ship(pygame.sprite.Sprite):
             self.mover_y -= self.velocity
             # Ship hits edge
             if self.ship_pos[1] < 0:
-                print ("Yeah hit top man")
                 self.mover_y = 0
                 self.ship_pos = (self.ship_pos_x, WindowHeight - SHIP_WIDTH)
         if ship_dir == 2:
@@ -120,7 +119,6 @@ class Ship(pygame.sprite.Sprite):
             if self.ship_pos[0] > WindowWidth:
                 self.mover_x = 0
                 self.ship_pos = (0, self.ship_pos_y)
-                #self.mover = -WindowHeight / 2
         if ship_dir == -2:
             self.velocity += 0.4
             if self.velocity > 0.6:
@@ -136,6 +134,14 @@ class Ship(pygame.sprite.Sprite):
 
     def reset_velocity(self):
         self.velocity = 0
+
+    def reset_damage(self):
+        self.damage = 0
+
+    def reset_pos(self):
+        self.ship_pos = (0, WindowHeight / 2)
+        self.mover_x = 0
+        self.mover_y = 0
 
     def is_ship_destroyed(self):
         if self.damage > self.damage_threshold:
@@ -179,18 +185,21 @@ class Asteroid(pygame.sprite.Sprite):
         return updated_x, updated_y
 
     def is_colliding(self, ship, explode, e_group, surface):
+        global lives
         s = ship
         e = explode
         shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
-            #print("collided with ship and the damage is " + str(s.damage))
-            #print("*****")
+            pygame.mixer.Sound.play(crash_sound)
+            pygame.mixer.music.stop()
             s.damage += 1
             e.update_sprite(s.ship_pos)
             e.animation()
             e_group.draw(shoot_em_surface)
             if s.is_ship_destroyed():
-                print("BOOM! Life is lost!!")
+                lives -= 1
+                s.reset_damage()
+                s.reset_pos()
 
 
 class Explosion(pygame.sprite.Sprite):
@@ -279,6 +288,7 @@ class Laser(pygame.sprite.Sprite):
         reset_pos = self.destroyed_asteroid = (False, (-30, -30))
         return reset_pos
 
+
 def rand_coord():
     rand_x = random.randrange(200, WindowWidth)
     rand_y = random.randrange(30, WindowHeight - 50)
@@ -301,13 +311,9 @@ def main():
 
     # Destroyed
     destroyed = None
-    global destroyed_pos, hide_asteroid_destroy, bound_up, bound_bottom, bound_left, bound_right
+    global destroyed_pos, hide_asteroid_destroy, lives
     destroyed_pos = (-30, -30)
     hide_asteroid_destroy = True
-    bound_up = False
-    bound_bottom = False
-    bound_left = False
-    bound_right = False
 
     # Initialise game objects
     s = Ship((0, (WindowHeight / 2)))
@@ -320,12 +326,13 @@ def main():
 
     weapon_1 = Laser((300, (WindowHeight / 2)))
 
-
     # Generate a list of "wave_list" Asteroid objects
-    wave_list = [6, 32, 64, 128]
+    wave_list = [2, 4, 8, 16, 32, 64, 128, 256]
+    current_wave = 0
     wave = wave_list[1]
     asteroids = [Asteroid((rand_coord())) for i in range(wave)]
     asteroids_group = [pygame.sprite.Group(asteroids)]
+    timer = 0
 
     # Start main game loop
     while loop:
@@ -333,9 +340,17 @@ def main():
         # Draw background image
         shoot_em_surface.blit(BG, [0, 0])
 
+        # Update Display for user
+        text = font.render("TIME " + str(timer), True, WHITE)
+        text2 = font.render("WAVE " + str(current_wave), True, WHITE)
+        text3 = font.render("SHIP DAMAGE " + str(s.damage), True, WHITE)
+        text4 = font.render("SHIPS LEFT " + str(lives), True, WHITE)
+        shoot_em_surface.blit(text, [WindowWidth - 1200, 0])
+        shoot_em_surface.blit(text2, [WindowWidth - 1000, 0])
+        shoot_em_surface.blit(text3, [WindowWidth - 700, 0])
+        shoot_em_surface.blit(text4, [WindowWidth - 300, 0])
         # Draw our ship
         s.draw(shoot_em_surface)
-        #s_group.draw(shoot_em_surface)
 
         # Animate and scroll the Asteroids
         for i in asteroids:
@@ -355,13 +370,16 @@ def main():
                 e_group.draw(shoot_em_surface)
                 if e.get_frames() > 0:
                     destroyed_pos = weapon_1.reset_destroyed_asteroid()
-                    #e.kill()
                     e.reset_frames()
                     hide_asteroid_destroy = True
+        # Check for game_over
+        if lives < 0:
+            game_over = True
+        if game_over:
+            loop = False
 
         # Update the screen
         pygame.display.flip()
-
 
         # Control frame rate
         clock.tick(15)
@@ -391,7 +409,6 @@ def main():
             #e_group = pygame.sprite.Group(e)
             destroyed = weapon_1.draw(shoot_em_surface, s, asteroids)
             pygame.display.flip()
-
 
 
 # Call main
