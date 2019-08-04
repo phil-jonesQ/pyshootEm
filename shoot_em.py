@@ -191,7 +191,7 @@ class Asteroid(pygame.sprite.Sprite):
         shoot_em_surface = surface
         if self.rect.colliderect(s.rect):
             pygame.mixer.Sound.play(crash_sound)
-            pygame.mixer.music.stop()
+            #pygame.mixer.music.stop()
             s.damage += 1
             e.update_sprite(s.ship_pos)
             e.animation()
@@ -276,7 +276,7 @@ class Laser(pygame.sprite.Sprite):
                 self.hit = True
                 if i.damage > i.damage_threshold:
                     pygame.mixer.Sound.play(crash_sound)
-                    pygame.mixer.music.stop()
+                    #pygame.mixer.music.stop()
                     i.kill()
                     self.asteroid_dead_pos = i.update_sprite(surface)
                     asteroids.remove(i)
@@ -295,6 +295,13 @@ def rand_coord():
     return rand_x, rand_y
 
 
+def generate_level(wave_list, current_wave):
+    wave = wave_list[current_wave]
+    asteroids = [Asteroid((rand_coord())) for i in range(wave)]
+    asteroids_group = [pygame.sprite.Group(asteroids)]
+    return asteroids, asteroids_group
+
+
 def main():
     # Create the Window
     pygame.init()
@@ -303,7 +310,11 @@ def main():
     pygame.key.set_repeat(1, 1)
 
     # Initialise fonts we will use
-    font = pygame.font.SysFont('Arial', 50, False, False)
+    font = pygame.font.SysFont('Arial', 30, False, False)
+
+    # Globals
+
+    global destroyed_pos, hide_asteroid_destroy, lives
 
     # Game loop and control booleans / counters
     loop = True
@@ -311,7 +322,6 @@ def main():
 
     # Destroyed
     destroyed = None
-    global destroyed_pos, hide_asteroid_destroy, lives
     destroyed_pos = (-30, -30)
     hide_asteroid_destroy = True
 
@@ -327,12 +337,14 @@ def main():
     weapon_1 = Laser((300, (WindowHeight / 2)))
 
     # Generate a list of "wave_list" Asteroid objects
-    wave_list = [2, 4, 8, 16, 32, 64, 128, 256]
+    wave_list = [2, 4, 8, 16, 32, 64, 128, 256, 512]
     current_wave = 0
-    wave = wave_list[1]
-    asteroids = [Asteroid((rand_coord())) for i in range(wave)]
-    asteroids_group = [pygame.sprite.Group(asteroids)]
+    generate_level(wave_list, 0)
+    asteroids, asteroids_group = generate_level(wave_list, 0)
+
+
     timer = 0
+
 
     # Start main game loop
     while loop:
@@ -378,6 +390,14 @@ def main():
         if game_over:
             loop = False
 
+        # Increment Wave
+        print (len(asteroids))
+        if len(asteroids) == 0:
+            current_wave += 1
+            asteroids, asteroids_group = generate_level(wave_list, current_wave)
+            if current_wave > 8:
+                current_wave == 8
+
         # Update the screen
         pygame.display.flip()
 
@@ -404,7 +424,7 @@ def main():
         #print (weapon_1.charged)
         if keys[pygame.K_SPACE]:
             pygame.mixer.Sound.play(laser_sound)
-            pygame.mixer.music.stop()
+            #pygame.mixer.music.stop()
              #e = Explosion()
             #e_group = pygame.sprite.Group(e)
             destroyed = weapon_1.draw(shoot_em_surface, s, asteroids)
