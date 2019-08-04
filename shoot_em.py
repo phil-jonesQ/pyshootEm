@@ -300,8 +300,20 @@ def reset_timer():
     return start_ticks
 
 
-def reset_game():
-    pass
+def paused():
+    global pause, lives, game_over
+    while pause:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_p] and pause and not game_over:
+                pause = False
+            if keys[pygame.K_q] and game_over:
+                lives = 3
+                reset_timer()
+                main()
 
 
 def main():
@@ -315,11 +327,12 @@ def main():
     font = pygame.font.SysFont('Arial', 30, False, False)
 
     # Globals
-    global destroyed_pos, hide_asteroid_destroy, lives
+    global destroyed_pos, hide_asteroid_destroy, lives, pause, game_over
 
     # Game loop and control booleans / counters
     loop = True
     game_over = False
+    pause = False
 
     # Destroyed
     destroyed = None
@@ -347,7 +360,6 @@ def main():
 
     # Start main game loop
     while loop:
-
         # Draw background image
         shoot_em_surface.blit(BG, [0, 0])
 
@@ -359,6 +371,7 @@ def main():
         text2 = font.render("WAVE " + str(current_wave), True, WHITE)
         text3 = font.render("SHIP DAMAGE " + str(s.damage), True, WHITE)
         text4 = font.render("SHIPS LEFT " + str(lives), True, WHITE)
+        text5 = font.render("GAME OVER!!! Q TO RESTART...", True, RED)
         shoot_em_surface.blit(text, [WindowWidth - 1200, 0])
         shoot_em_surface.blit(text2, [WindowWidth - 1000, 0])
         shoot_em_surface.blit(text3, [WindowWidth - 700, 0])
@@ -390,11 +403,20 @@ def main():
 
         # Check for game_over
         if lives < 0:
+            lives = 0
             game_over = True
-        if game_over:
-            loop = False
 
-        # Increment Wave - v1.00 cap it at 8
+
+        # Check if paused
+        if pause:
+            paused()
+
+        if game_over:
+            shoot_em_surface.blit(text5, [WindowWidth - 800, 300])
+            pause = True
+
+
+        # Increment Wave - < v1.03 cap it at 8
         if len(asteroids) == 0:
             current_wave += 1
             asteroids, asteroids_group = generate_level(wave_list, current_wave)
@@ -417,22 +439,25 @@ def main():
                 s.reset_velocity()
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] and not game_over:
             s.move(-1)
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] and not game_over:
             s.move(1)
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] and not game_over:
             s.move(2)
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] and not game_over:
             s.move(-2)
-        #print (weapon_1.charged)
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and not game_over:
             pygame.mixer.Sound.play(laser_sound)
-            #pygame.mixer.music.stop()
-             #e = Explosion()
-            #e_group = pygame.sprite.Group(e)
             destroyed = weapon_1.draw(shoot_em_surface, s, asteroids)
             pygame.display.flip()
+        if keys[pygame.K_q] and game_over:
+            lives = 3
+            reset_timer()
+            main()
+        if keys[pygame.K_p] and not pause:
+            pause = True
+
 
 
 # Call main
