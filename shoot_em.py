@@ -1,4 +1,4 @@
-""" Version 1.02 - asteroid shoot em up game, with little plot or point..
+""" Version 1.03 - asteroid shoot em up game, with little plot or point..
 working game, but still a few glitches and needs a few more features adding
 Phil Jones August 2019 - phil.jones.24.4@gmail.com
 v1.02 - Working game with sounds, sprites, HUD, Level / wave system, game control
