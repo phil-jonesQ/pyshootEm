@@ -1,6 +1,8 @@
 """ Version 1.02 - asteroid shoot em up game, with little plot or point..
 working game, but still a few glitches and needs a few more features adding
 Phil Jones August 2019 - phil.jones.24.4@gmail.com
+v1.02 - Working game with sounds, sprites, HUD, Level / wave system, game control
+v1.03 - Raise frame rate, tidy up code and comments
 """
 
 import pygame
@@ -16,7 +18,7 @@ y_POS = WindowHeight / 2
 # Lives is a constant
 lives = 3
 # Version constant
-version = "1.02"
+version = "1.03"
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -36,20 +38,19 @@ pygame.mixer.init()
 crash_sound = pygame.mixer.Sound("game_assets/sounds/boom.wav")
 laser_sound = pygame.mixer.Sound("game_assets/sounds/laser.wav")
 
-# Load images
+# Load game images
 BG = pygame.transform.scale(pygame.image.load("game_assets/BG.jpg"), (WindowWidth, WindowHeight))
 ship = pygame.transform.scale(pygame.image.load("game_assets/Ship1_new.png"), (100, 30))
-laser = pygame.transform.scale(pygame.image.load("game_assets/laser.png"), (100, 3))
+laser = pygame.transform.scale(pygame.image.load("game_assets/laser.png"), (30, 3))
 
-# Load Asteroids
+# Load Asteroids sprite set for rotation
 a_images = []
 path = "game_assets/medium/a1"
 for file_name in os.listdir(path):
     image = pygame.transform.scale(pygame.image.load(path + os.sep + file_name), (60, 60))
-    #image = pygame.image.load(path + os.sep + file_name)
     a_images.append(image)
 
-# Load Explosions
+# Load Explosions sprite set
 e_images = []
 path = "game_assets/explosion"
 for file_name in os.listdir(path):
@@ -215,6 +216,7 @@ class Explosion(pygame.sprite.Sprite):
         if self.index >= len(self.images):
             # we will make the index to 0 again
             self.index = 0
+            # this is used to ensure the explosion can last / run a full cycle
             self.frame_total += 1
         # finally we will update the image that will be displayed
         self.image = self.images[self.index]
@@ -236,7 +238,6 @@ class Laser(pygame.sprite.Sprite):
         self.image = laser
         self.laser_pos = pos
         self.propogate = 0
-        self.propogate_stop = 100
         self.mask = pygame.mask.from_surface(self.image)
         self.charged = True
         self.hit = False
@@ -357,7 +358,6 @@ def main():
     current_wave = 0
     generate_level(wave_list, 0)
     asteroids, asteroids_group = generate_level(wave_list, 0)
-
     # Start main game loop
     while loop:
         # Draw background image
@@ -406,7 +406,6 @@ def main():
             lives = 0
             game_over = True
 
-
         # Check if paused
         if pause:
             paused()
@@ -415,8 +414,7 @@ def main():
             shoot_em_surface.blit(text5, [WindowWidth - 800, 300])
             pause = True
 
-
-        # Increment Wave - < v1.03 cap it at 8
+        # Increment Wave - < v1.04 cap it at 8
         if len(asteroids) == 0:
             current_wave += 1
             asteroids, asteroids_group = generate_level(wave_list, current_wave)
@@ -428,7 +426,7 @@ def main():
         pygame.display.flip()
 
         # Control frame rate
-        clock.tick(15)
+        clock.tick(30)
 
         # Handle user input
         for event in pygame.event.get():
@@ -457,7 +455,6 @@ def main():
             main()
         if keys[pygame.K_p] and not pause:
             pause = True
-
 
 
 # Call main
