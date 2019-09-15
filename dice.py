@@ -12,10 +12,10 @@ def main():
     players_turn = 1  # player 1 starts on turn 1
     total_player_throws = 4  # players have 2 goes each
     rounds = 1  # rounds system
-    round_max = 5  # Max rounds
+    round_max = 9  # Max rounds
     my_message = {1: "Player 1, press enter to throw your first die",
                   2: "Player 1, press enter to throw your second die",
-                  3: "Player 2 press enter to throw your first die",
+                  3: "Player 2, press enter to throw your first die",
                   4: "Player 2, press enter to throw your second die"}
     # Create a dictionary so we can do a more inteligent message to the user
     my_player_map = {1: "Player 1", 2: "Player 1", 3: "Player 2", 4: "Player 2"}
@@ -32,8 +32,8 @@ def main():
             print("#####################################")
             print("Playing round " + str(rounds))
             print("#####################################")
-            while players_turn <= total_player_throws: # Repeat for how many throws we get
-                input(str(my_message.get(players_turn))) # Wait for return key
+            while players_turn <= total_player_throws:  # Repeat for how many throws we get
+                input(str(my_message.get(players_turn)))  # Wait for return key
                 my_throw = throw() # Call our throw function and store in a variable
                 print(my_player_map.get(players_turn) + " threw a " + str(my_throw))  # Print the result
                 # Prepare add the result to the result dictionary
@@ -104,7 +104,10 @@ def main():
 
         run = False  # Stop main loop
         main()
+
+
 # Call main game
 main()
+
 
 
