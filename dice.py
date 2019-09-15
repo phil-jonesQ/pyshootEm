@@ -1,3 +1,8 @@
+""" Version 1.03 - Simple chance game using rounds and two players - records results
+game features while loops to stop code repetition and dictionaries to generate messages and record results
+"""
+
+
 import random
 
 
